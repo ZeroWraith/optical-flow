@@ -2,18 +2,19 @@ import cv2
 import numpy as np
 
 # --- STEP 1: OPEN YOUR CAMERA ---
-# The new AI Camera needs a special "pipeline" to talk to OpenCV.
 pipeline = (
     "libcamerasrc ! "
-    "video/x-raw, width=640, height=480, framerate=30/1 ! "
+    "video/x-raw, width=640, height=480 ! "
     "videoconvert ! "
+    "videoscale ! "
+    "video/x-raw, width=640, height=480 ! "
     "appsink"
 )
 cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
-# If the special pipeline fails, we try the old way just in case.
 if not cap.isOpened():
-    cap = cv2.VideoCapture(0)
+    print("Error: Could not open camera. Try: sudo apt install gstreamer1.0-libcamera")
+    exit()
 
 ret, frame1 = cap.read()
 if not ret:

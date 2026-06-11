@@ -2,17 +2,23 @@ import cv2
 import numpy as np
 
 # --- STEP 1: OPEN YOUR CAMERA ---
-# We try to force the camera to use a smaller size immediately 
-# to save memory on the Pi.
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-cap.set(cv2.CAP_PROP_FPS, 30)
+# Since rpicam-hello works, we use the libcamerasrc bridge.
+# We add 'videoscale' to make sure the memory stays low.
+pipeline = (
+    "libcamerasrc ! "
+    "video/x-raw, width=640, height=480 ! "
+    "videoconvert ! "
+    "videoscale ! "
+    "video/x-raw, width=640, height=480 ! "
+    "appsink"
+)
+
+cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
 if not cap.isOpened():
-    print("Error: Could not open camera. Trying GStreamer...")
-    pipeline = "libcamerasrc ! video/x-raw, width=640, height=480 ! videoconvert ! appsink"
-    cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+    print("Error: OpenCV still can't bridge to libcamera.")
+    print("Try running: sudo apt install gstreamer1.0-libcamera")
+    exit()
 
 # Settings for finding good "sticky note" corners
 feature_params = dict(maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7)
