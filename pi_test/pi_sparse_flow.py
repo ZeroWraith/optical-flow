@@ -2,19 +2,17 @@ import cv2
 import numpy as np
 
 # --- STEP 1: OPEN YOUR CAMERA ---
-# The new AI Camera needs a special "pipeline" to talk to OpenCV.
-# We tell it to use 'libcamerasrc' and set a smaller size so it runs fast!
-pipeline = (
-    "libcamerasrc ! "
-    "video/x-raw, width=640, height=480, framerate=30/1 ! "
-    "videoconvert ! "
-    "appsink"
-)
-cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+# We try to force the camera to use a smaller size immediately 
+# to save memory on the Pi.
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+cap.set(cv2.CAP_PROP_FPS, 30)
 
-# If the special pipeline fails, we try the old way just in case.
 if not cap.isOpened():
-    cap = cv2.VideoCapture(0)
+    print("Error: Could not open camera. Trying GStreamer...")
+    pipeline = "libcamerasrc ! video/x-raw, width=640, height=480 ! videoconvert ! appsink"
+    cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
 # Settings for finding good "sticky note" corners
 feature_params = dict(maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7)
