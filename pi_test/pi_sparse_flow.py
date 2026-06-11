@@ -2,8 +2,19 @@ import cv2
 import numpy as np
 
 # --- STEP 1: OPEN YOUR CAMERA ---
-# Instead of a movie file, we use '0' to talk to your Pi's camera!
-cap = cv2.VideoCapture(0)
+# The new AI Camera needs a special "pipeline" to talk to OpenCV.
+# We tell it to use 'libcamerasrc' and set a smaller size so it runs fast!
+pipeline = (
+    "libcamerasrc ! "
+    "video/x-raw, width=640, height=480, framerate=30/1 ! "
+    "videoconvert ! "
+    "appsink"
+)
+cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+
+# If the special pipeline fails, we try the old way just in case.
+if not cap.isOpened():
+    cap = cv2.VideoCapture(0)
 
 # Settings for finding good "sticky note" corners
 feature_params = dict(maxCorners=100, qualityLevel=0.3, minDistance=7, blockSize=7)
